@@ -167,3 +167,16 @@ b08dc24807bf   postgres              "docker-entrypoint.s…"   8 minutes ago   
 ce124131cac1   postgres:alpine3.22   "docker-entrypoint.s…"   15 minutes ago   Exited (1) 15 minutes ago              rendimiento
 
 C:\Users\Camilo>**/
+
+
+
+
+/**
+ * 
+ * ////////// DOCKER ///////////
+ * mvn clean package -DskipTests 
+ * 
+ * docker compose build
+ * 
+ * docker compose up
+ */
