@@ -1,0 +1,60 @@
+-- Migrations will appear here as you chat with AI
+
+create table categorias (
+  id bigint primary key generated always as identity,
+  nombre text not null,
+  descripcion text,
+  categoria_padre_id bigint,
+  constraint fk_categoria_padre foreign key (categoria_padre_id) references categorias (id) on delete set null
+);
+
+create table productos (
+  id bigint primary key generated always as identity,
+  nombre text not null,
+  descripcion text,
+  precio numeric(12, 2) not null,
+  categoria_id bigint not null,
+  creado_en timestamp default now(),
+  actualizado_en timestamp default now(),M
+  constraint fk_categoria foreign key (categoria_id) references categorias (id)
+);
+
+create index idx_productos_nombre on productos using btree (nombre);
+
+create index idx_productos_precio on productos using btree (precio);
+
+create index idx_productos_categoria on productos using btree (categoria_id);
+
+create table inventario (
+  id bigint primary key generated always as identity,
+  producto_id bigint not null unique,
+  cantidad int not null default 0,
+  actualizado_en timestamp default now(),
+  constraint fk_inventario_producto foreign key (producto_id) references productos (id) on delete cascade
+);
+
+create type tipo_transaccion as enum('VENTA', 'ENTRADA', 'DEVOLUCION', 'AJUSTE');
+
+create table transacciones_inventario (
+  id bigint primary key generated always as identity,
+  producto_id bigint not null,
+  tipo tipo_transaccion not null,
+  cantidad int not null,
+  fecha timestamp default now(),
+  usuario_id bigint,
+  constraint fk_trans_producto foreign key (producto_id) references productos (id) on delete cascade
+);
+
+create index idx_trans_producto_fecha on transacciones_inventario using btree (producto_id, fecha);
+
+create index idx_trans_tipo on transacciones_inventario using btree (tipo);
+
+create table usuarios (
+  id bigint primary key generated always as identity,
+  nombre text not null,
+  correo text unique,
+  rol text not null check (rol in ('CLIENTE', 'ANALISTA', 'BODEGA', 'ADMIN'))
+);
+
+alter table transacciones_inventario
+add constraint fk_trans_usuario foreign key (usuario_id) references usuarios (id) on delete set null;
