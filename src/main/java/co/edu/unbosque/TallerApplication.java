@@ -180,3 +180,12 @@ C:\Users\Camilo>**/
  * 
  * docker compose up
  */
+
+
+
+
+
+ /**
+  * git push --set-upstream origin camilo-rama 
+  git push origin camilo-rama 
+  */

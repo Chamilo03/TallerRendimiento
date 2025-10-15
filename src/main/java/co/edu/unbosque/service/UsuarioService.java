@@ -1,7 +1,6 @@
 package co.edu.unbosque.service;
 
 import co.edu.unbosque.entity.Usuario;
-import co.edu.unbosque.entity.RolUsuario;
 import co.edu.unbosque.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +32,7 @@ public class UsuarioService {
         usuarioRepository.deleteById(id);
     }
 
-    public List<Usuario> buscarPorRol(RolUsuario rol) {
+    public List<Usuario> buscarPorRol(String rol) {
         return usuarioRepository.findByRol(rol);
     }
 

@@ -1,9 +1,14 @@
 package co.edu.unbosque.entity;
 
-import jakarta.persistence.*;
-import lombok.Data;
-
 import java.io.Serializable;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
 
 @Entity
 @Table(name = "usuarios")
@@ -20,7 +25,6 @@ public class Usuario implements Serializable {
     @Column(unique = true)
     private String correo;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RolUsuario rol;
+    private String rol;
 }

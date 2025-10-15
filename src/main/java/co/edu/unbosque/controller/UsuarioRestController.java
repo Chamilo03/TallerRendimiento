@@ -1,7 +1,6 @@
 package co.edu.unbosque.controller;
 
 import co.edu.unbosque.entity.Usuario;
-import co.edu.unbosque.entity.RolUsuario;
 import co.edu.unbosque.service.UsuarioService;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,7 +42,7 @@ public class UsuarioRestController {
 
     // Buscar por rol
     @GetMapping("/rol/{rol}")
-    public List<Usuario> buscarPorRol(@PathVariable RolUsuario rol) {
+    public List<Usuario> buscarPorRol(@PathVariable String rol) {
         return usuarioService.buscarPorRol(rol);
     }
 

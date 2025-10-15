@@ -1,12 +1,12 @@
 package co.edu.unbosque.service;
 
-import co.edu.unbosque.entity.TransaccionInventario;
-import co.edu.unbosque.entity.TipoTransaccion;
-import co.edu.unbosque.repository.TransaccionInventarioRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import co.edu.unbosque.entity.TransaccionInventario;
+import co.edu.unbosque.repository.TransaccionInventarioRepository;
 
 @Service
 public class TransaccionInventarioService {
@@ -37,7 +37,7 @@ public class TransaccionInventarioService {
         return transaccionInventarioRepository.findByProductoId(productoId);
     }
 
-    public List<TransaccionInventario> buscarPorTipo(TipoTransaccion tipo) {
+    public List<TransaccionInventario> buscarPorTipo(String tipo) {
         return transaccionInventarioRepository.findByTipo(tipo);
     }
 }

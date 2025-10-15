@@ -1,7 +1,6 @@
 package co.edu.unbosque.controller;
 
 import co.edu.unbosque.entity.TransaccionInventario;
-import co.edu.unbosque.entity.TipoTransaccion;
 import co.edu.unbosque.service.TransaccionInventarioService;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,7 +48,7 @@ public class TransaccionInventarioRestController {
 
     // Buscar transacciones por tipo
     @GetMapping("/tipo/{tipo}")
-    public List<TransaccionInventario> buscarPorTipo(@PathVariable TipoTransaccion tipo) {
+    public List<TransaccionInventario> buscarPorTipo(@PathVariable String tipo) {
         return transaccionInventarioService.buscarPorTipo(tipo);
     }
 }

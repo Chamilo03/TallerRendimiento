@@ -1,14 +1,14 @@
 package co.edu.unbosque.repository;
 
-import co.edu.unbosque.entity.TransaccionInventario;
-import co.edu.unbosque.entity.TipoTransaccion;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import co.edu.unbosque.entity.TransaccionInventario;
 
 @Repository
 public interface TransaccionInventarioRepository extends JpaRepository<TransaccionInventario, Long> {
     List<TransaccionInventario> findByProductoId(Long productoId);
-    List<TransaccionInventario> findByTipo(TipoTransaccion tipo);
+    List<TransaccionInventario> findByTipo(String tipo);
 }

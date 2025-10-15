@@ -1,19 +1,32 @@
 package co.edu.unbosque.controller;
 
-import co.edu.unbosque.entity.Producto;
-import co.edu.unbosque.service.ProductoService;
-import org.springframework.web.bind.annotation.*;
-
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import co.edu.unbosque.entity.Producto;
+import co.edu.unbosque.service.InventarioService;
+import co.edu.unbosque.service.ProductoService;
 
 @RestController
 @RequestMapping("/api/productos")
 public class ProductoRestController {
 
     private final ProductoService productoService;
+    private final InventarioService inventarioService;
 
-    public ProductoRestController(ProductoService productoService) {
+    public ProductoRestController(ProductoService productoService, InventarioService inventarioService) {
         this.productoService = productoService;
+        this.inventarioService = inventarioService;
     }
 
     // Listar todos los productos
@@ -57,4 +70,43 @@ public class ProductoRestController {
     public List<Producto> buscarPorRangoPrecio(@RequestParam Double min, @RequestParam Double max) {
         return productoService.buscarPorRangoPrecio(min, max);
     }
+
+    @GetMapping("/search")
+    public List<Producto> buscarProductos(
+        @RequestParam(required = false) String query,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) Double minPrice,
+        @RequestParam(required = false) Double maxPrice) {
+
+    List<Producto> productos = productoService.listarProductos();
+
+    return productos.stream()
+            .filter(p -> query == null || p.getNombre().toLowerCase().contains(query.toLowerCase()))
+            .filter(p -> category == null || 
+                    (p.getCategoria() != null && 
+                     p.getCategoria().getNombre().equalsIgnoreCase(category)))
+            .filter(p -> minPrice == null || p.getPrecio() >= minPrice)
+            .filter(p -> maxPrice == null || p.getPrecio() <= maxPrice)
+            .toList();
+    }
+
+    @GetMapping("/{id}/details")
+    public Map<String, Object> obtenerDetallesProducto(@PathVariable Long id) {
+    Map<String, Object> response = new HashMap<>();
+
+    Producto producto = productoService.obtenerProducto(id).orElse(null);
+    if (producto == null) {
+        response.put("error", "Producto no encontrado");
+        return response;
+    }
+
+    response.put("producto", producto);
+
+    inventarioService.obtenerPorProducto(id).ifPresent(
+            inv -> response.put("inventario", inv.getCantidad())
+    );
+
+    return response;
+    }
+
 }
