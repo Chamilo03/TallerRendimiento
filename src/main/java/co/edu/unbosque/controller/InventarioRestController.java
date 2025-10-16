@@ -4,12 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,32 +30,12 @@ public class InventarioRestController {
         return inventarioService.listarInventario();
     }
 
-    // Obtener inventario por ID
-    @GetMapping("/{id}")
-    public Inventario obtenerInventario(@PathVariable Long id) {
-        return inventarioService.obtenerInventario(id).orElse(null);
-    }
-
-    // Obtener inventario por producto
-    @GetMapping("/producto/{productoId}")
+    @GetMapping("/product/{productoId}")
     public Inventario obtenerPorProducto(@PathVariable Long productoId) {
         return inventarioService.obtenerPorProducto(productoId).orElse(null);
     }
 
-    // Crear o actualizar inventario
-    @PostMapping
-    public Inventario guardarInventario(@RequestBody Inventario inventario) {
-        return inventarioService.guardarInventario(inventario);
-    }
-
-    // Eliminar inventario
-    @DeleteMapping("/{id}")
-    public void eliminarInventario(@PathVariable Long id) {
-        inventarioService.eliminarInventario(id);
-    }
-
-    // Actualizar stock de un producto
-    @PutMapping("/producto/{productoId}/stock")
+    @PutMapping("/product/{productoId}/stock")
     public Inventario actualizarStock(@PathVariable Long productoId, @RequestParam int cantidad) {
         return inventarioService.actualizarStock(productoId, cantidad);
     }

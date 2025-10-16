@@ -22,11 +22,11 @@ import co.edu.unbosque.service.ProductoService;
 public class ProductoRestController {
 
     private final ProductoService productoService;
-    private final InventarioService inventarioService;
+    // private final InventarioService inventarioService;
 
     public ProductoRestController(ProductoService productoService, InventarioService inventarioService) {
         this.productoService = productoService;
-        this.inventarioService = inventarioService;
+        // this.inventarioService = inventarioService;
     }
 
     // Listar todos los productos
@@ -90,7 +90,7 @@ public class ProductoRestController {
             .toList();
     }
 
-    @GetMapping("/{id}/details")
+    /**@GetMapping("/{id}/details")
     public Map<String, Object> obtenerDetallesProducto(@PathVariable Long id) {
     Map<String, Object> response = new HashMap<>();
 
@@ -107,6 +107,10 @@ public class ProductoRestController {
     );
 
     return response;
+    }**/
+    @GetMapping("/{id}/details")
+    public Producto obtenerDetallesProducto(@PathVariable Long id) {
+        return productoService.obtenerProducto(id).orElse(null);
     }
 
 }
