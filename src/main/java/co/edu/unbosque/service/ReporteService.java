@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import co.edu.unbosque.entity.TransaccionInventario;
@@ -19,7 +20,7 @@ public class ReporteService {
     public ReporteService(TransaccionInventarioRepository transaccionInventarioRepository) {
         this.transaccionInventarioRepository = transaccionInventarioRepository;
     }
-
+    @Cacheable(value = "topSelling", key = "#period")
     public List<Map<String, Object>> obtenerTopSelling(String period) {
         LocalDateTime desde = switch (period.toLowerCase()) {
             case "day" -> LocalDateTime.now().minusDays(1);

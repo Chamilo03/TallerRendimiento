@@ -1,11 +1,13 @@
 package co.edu.unbosque.service;
 
-import co.edu.unbosque.entity.Categoria;
-import co.edu.unbosque.repository.CategoriaRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
+import co.edu.unbosque.entity.Categoria;
+import co.edu.unbosque.repository.CategoriaRepository;
 
 @Service
 public class CategoriaService {
@@ -16,23 +18,26 @@ public class CategoriaService {
         this.categoriaRepository = categoriaRepository;
     }
 
+    @Cacheable(value = "categorias")
     public List<Categoria> listarCategorias() {
         return categoriaRepository.findAll();
     }
 
+    @Cacheable(value = "categoria", key = "#id")
     public Optional<Categoria> obtenerCategoria(Long id) {
         return categoriaRepository.findById(id);
+    }
+
+    @Cacheable(value = "categoriasPorNombre", key = "#nombre")
+    public List<Categoria> buscarPorNombre(String nombre) {
+        return categoriaRepository.findByNombreContainingIgnoreCase(nombre);
     }
 
     public Categoria guardarCategoria(Categoria categoria) {
         return categoriaRepository.save(categoria);
     }
-
+    
     public void eliminarCategoria(Long id) {
         categoriaRepository.deleteById(id);
-    }
-
-    public List<Categoria> buscarPorNombre(String nombre) {
-        return categoriaRepository.findByNombreContainingIgnoreCase(nombre);
     }
 }
