@@ -15,7 +15,7 @@ create table productos (
   precio numeric(12, 2) not null,
   categoria_id bigint not null,
   creado_en timestamp default now(),
-  actualizado_en timestamp default now(),M
+  actualizado_en timestamp default now(),
   constraint fk_categoria foreign key (categoria_id) references categorias (id)
 );
 
@@ -58,3 +58,155 @@ create table usuarios (
 
 alter table transacciones_inventario
 add constraint fk_trans_usuario foreign key (usuario_id) references usuarios (id) on delete set null;
+
+alter table productos
+add column comentarios text;
+
+alter table productos
+add column calificacion numeric(2, 1);
+
+-- Insert 10 main categories with subcategories
+insert into
+  categorias (nombre, descripcion, categoria_padre_id)
+values
+  ('Electronics', 'Devices and gadgets', null),
+  (
+    'Home Appliances',
+    'Appliances for home use',
+    null
+  ),
+  ('Clothing', 'Apparel and garments', null),
+  ('Books', 'Printed and digital books', null),
+  ('Toys', 'Toys and games for children', null),
+  ('Sports', 'Sports equipment and apparel', null),
+  (
+    'Beauty',
+    'Beauty and personal care products',
+    null
+  ),
+  (
+    'Automotive',
+    'Automotive parts and accessories',
+    null
+  ),
+  ('Furniture', 'Home and office furniture', null),
+  ('Groceries', 'Food and beverages', null);
+
+-- Insert subcategories
+insert into
+  categorias (nombre, descripcion, categoria_padre_id)
+values
+  ('Mobile Phones', 'Smartphones and accessories', 1),
+  ('Laptops', 'Portable computers', 1),
+  ('Refrigerators', 'Cooling appliances', 2),
+  ('Washing Machines', 'Laundry appliances', 2),
+  ('Men Clothing', 'Apparel for men', 3),
+  ('Women Clothing', 'Apparel for women', 3),
+  ('Fiction', 'Fictional books', 4),
+  ('Non-Fiction', 'Non-fictional books', 4),
+  ('Action Figures', 'Collectible action figures', 5),
+  ('Board Games', 'Games for groups', 5);
+
+-- Insert 1,000 simulated users
+insert into
+  usuarios (nombre, correo, rol)
+select
+  'User ' || i,
+  'user' || i || '@example.com',
+  (array['CLIENTE', 'ANALISTA', 'BODEGA', 'ADMIN']) [floor(random() * 4 + 1)]
+from
+  generate_series(1, 1000) as s (i);
+
+-- Insert 70,000 products with random data
+insert into
+  productos (
+    nombre,
+    descripcion,
+    precio,
+    categoria_id,
+    creado_en,
+    actualizado_en,
+    comentarios,
+    calificacion
+  )
+select
+  'Product ' || i,
+  'Description for product ' || i,
+  round((random() * 1000 + 1)::numeric, 2),
+  (
+    select
+      id
+    from
+      categorias
+    order by
+      random()
+    limit
+      1
+  ),
+  now() - (random() * (interval '365 days')),
+  now(),
+  'Comment for product ' || i,
+  round((random() * 5)::numeric, 1)
+from
+  generate_series(1, 70000) as s (i);
+
+
+insert into
+  productos (
+    nombre,
+    descripcion,
+    precio,
+    categoria_id,
+    creado_en,
+    actualizado_en,
+    comentarios,
+    calificacion
+  )
+values
+  (
+    'Laptop',
+    'High-performance laptop',
+    500,
+    (
+      select
+        id
+      from
+        categorias
+      where
+        nombre = 'Electronics'
+      limit
+        1
+    ),
+    now(),
+    now(),
+    'Great laptop for work and play',
+    4.5
+  );
+
+
+-- Insert inventory records for existing products
+insert into
+  inventario (producto_id, cantidad, actualizado_en)
+select
+  id,
+  (random() * 100)::int,
+  now()
+from
+  productos;
+
+INSERT INTO transacciones_inventario (producto_id, tipo, cantidad, fecha, usuario_id)
+SELECT 
+    i.producto_id,
+    CASE
+        WHEN r < 0.70 THEN 'VENTA'
+        WHEN r < 0.90 THEN 'ENTRADA'
+        WHEN r < 0.95 THEN 'DEVOLUCION'
+        ELSE 'AJUSTE'
+    END AS tipo,
+    (random() * 10 + 1)::int,  -- Cantidad entre 1 y 10
+    NOW() - (random() * interval '365 days'), -- Fecha aleatoria del último año
+    (SELECT id FROM usuarios ORDER BY random() LIMIT 1) -- Usuario aleatorio
+FROM inventario i
+JOIN productos p ON i.producto_id = p.id
+CROSS JOIN LATERAL (SELECT random() AS r) rnd
+LIMIT 100000;
