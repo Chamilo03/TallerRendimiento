@@ -1,11 +1,12 @@
 package co.edu.unbosque.service;
 
-import co.edu.unbosque.entity.Usuario;
-import co.edu.unbosque.repository.UsuarioRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import co.edu.unbosque.entity.Usuario;
+import co.edu.unbosque.repository.UsuarioRepository;
 
 @Service
 public class UsuarioService {
@@ -33,7 +34,7 @@ public class UsuarioService {
     }
 
     public List<Usuario> buscarPorRol(String rol) {
-        return usuarioRepository.findByRol(rol);
+        return usuarioRepository.findByRol_Nombre(rol);
     }
 
     public Usuario buscarPorCorreo(String correo) {

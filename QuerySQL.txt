@@ -1,14 +1,12 @@
--- Migrations will appear here as you chat with AI
-
-create table categorias (
+-- Create table for categories
+CREATE TABLE categorias (
   id bigint primary key generated always as identity,
   nombre text not null,
-  descripcion text,
-  categoria_padre_id bigint,
-  constraint fk_categoria_padre foreign key (categoria_padre_id) references categorias (id) on delete set null
+  descripcion text
 );
 
-create table productos (
+-- Create table for products
+CREATE TABLE productos (
   id bigint primary key generated always as identity,
   nombre text not null,
   descripcion text,
@@ -16,184 +14,110 @@ create table productos (
   categoria_id bigint not null,
   creado_en timestamp default now(),
   actualizado_en timestamp default now(),
-  constraint fk_categoria foreign key (categoria_id) references categorias (id)
+  comentarios text,
+  calificacion numeric(2, 1),
+  CONSTRAINT fk_categoria FOREIGN KEY (categoria_id) REFERENCES categorias (id)
 );
 
-create index idx_productos_nombre on productos using btree (nombre);
+-- Create indexes for products
+CREATE INDEX idx_productos_nombre ON productos USING btree (nombre);
+CREATE INDEX idx_productos_precio ON productos USING btree (precio);
+CREATE INDEX idx_productos_categoria ON productos USING btree (categoria_id);
 
-create index idx_productos_precio on productos using btree (precio);
-
-create index idx_productos_categoria on productos using btree (categoria_id);
-
-create table inventario (
+-- Create table for inventory
+CREATE TABLE inventario (
   id bigint primary key generated always as identity,
   producto_id bigint not null unique,
   cantidad int not null default 0,
   actualizado_en timestamp default now(),
-  constraint fk_inventario_producto foreign key (producto_id) references productos (id) on delete cascade
+  CONSTRAINT fk_inventario_producto FOREIGN KEY (producto_id) REFERENCES productos (id) ON DELETE CASCADE
 );
 
-create type tipo_transaccion as enum('VENTA', 'ENTRADA', 'DEVOLUCION', 'AJUSTE');
+-- Create enum type for transaction types
+CREATE TYPE tipo_transaccion AS ENUM('VENTA', 'ENTRADA', 'DEVOLUCION', 'AJUSTE');
 
-create table transacciones_inventario (
+-- Create table for inventory transactions
+CREATE TABLE transacciones_inventario (
   id bigint primary key generated always as identity,
   producto_id bigint not null,
   tipo tipo_transaccion not null,
   cantidad int not null,
   fecha timestamp default now(),
   usuario_id bigint,
-  constraint fk_trans_producto foreign key (producto_id) references productos (id) on delete cascade
+  CONSTRAINT fk_trans_producto FOREIGN KEY (producto_id) REFERENCES productos (id) ON DELETE CASCADE
 );
 
-create index idx_trans_producto_fecha on transacciones_inventario using btree (producto_id, fecha);
+-- Create indexes for inventory transactions
+CREATE INDEX idx_trans_producto_fecha ON transacciones_inventario USING btree (producto_id, fecha);
+CREATE INDEX idx_trans_tipo ON transacciones_inventario USING btree (tipo);
 
-create index idx_trans_tipo on transacciones_inventario using btree (tipo);
+-- Create table for roles
+CREATE TABLE roles (
+  id bigint primary key generated always as identity,
+  nombre text not null unique
+);
 
-create table usuarios (
+-- Insert roles into the roles table
+INSERT INTO roles (nombre) VALUES ('CLIENTE'), ('ANALISTA'), ('BODEGA'), ('ADMIN');
+
+-- Create table for users
+CREATE TABLE usuarios (
   id bigint primary key generated always as identity,
   nombre text not null,
   correo text unique,
-  rol text not null check (rol in ('CLIENTE', 'ANALISTA', 'BODEGA', 'ADMIN'))
+  rol_id bigint,
+  CONSTRAINT fk_rol FOREIGN KEY (rol_id) REFERENCES roles (id)
 );
 
-alter table transacciones_inventario
-add constraint fk_trans_usuario foreign key (usuario_id) references usuarios (id) on delete set null;
+-- Alter table to add foreign key for user transactions
+ALTER TABLE transacciones_inventario
+ADD CONSTRAINT fk_trans_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE SET NULL;
 
-alter table productos
-add column comentarios text;
+-- Insert main categories
+INSERT INTO categorias (nombre, descripcion) VALUES
+  ('Electronics', 'Devices and gadgets'),
+  ('Home Appliances', 'Appliances for home use'),
+  ('Clothing', 'Apparel and garments'),
+  ('Books', 'Printed and digital books'),
+  ('Toys', 'Toys and games for children'),
+  ('Sports', 'Sports equipment and apparel'),
+  ('Beauty', 'Beauty and personal care products'),
+  ('Automotive', 'Automotive parts and accessories'),
+  ('Furniture', 'Home and office furniture'),
+  ('Groceries', 'Food and beverages');
 
-alter table productos
-add column calificacion numeric(2, 1);
 
--- Insert 10 main categories with subcategories
-insert into
-  categorias (nombre, descripcion, categoria_padre_id)
-values
-  ('Electronics', 'Devices and gadgets', null),
-  (
-    'Home Appliances',
-    'Appliances for home use',
-    null
-  ),
-  ('Clothing', 'Apparel and garments', null),
-  ('Books', 'Printed and digital books', null),
-  ('Toys', 'Toys and games for children', null),
-  ('Sports', 'Sports equipment and apparel', null),
-  (
-    'Beauty',
-    'Beauty and personal care products',
-    null
-  ),
-  (
-    'Automotive',
-    'Automotive parts and accessories',
-    null
-  ),
-  ('Furniture', 'Home and office furniture', null),
-  ('Groceries', 'Food and beverages', null);
-
--- Insert subcategories
-insert into
-  categorias (nombre, descripcion, categoria_padre_id)
-values
-  ('Mobile Phones', 'Smartphones and accessories', 1),
-  ('Laptops', 'Portable computers', 1),
-  ('Refrigerators', 'Cooling appliances', 2),
-  ('Washing Machines', 'Laundry appliances', 2),
-  ('Men Clothing', 'Apparel for men', 3),
-  ('Women Clothing', 'Apparel for women', 3),
-  ('Fiction', 'Fictional books', 4),
-  ('Non-Fiction', 'Non-fictional books', 4),
-  ('Action Figures', 'Collectible action figures', 5),
-  ('Board Games', 'Games for groups', 5);
-
--- Insert 1,000 simulated users
-insert into
-  usuarios (nombre, correo, rol)
-select
+-- Insert 1,000 simulated users with random roles
+INSERT INTO usuarios (nombre, correo, rol_id)
+SELECT
   'User ' || i,
   'user' || i || '@example.com',
-  (array['CLIENTE', 'ANALISTA', 'BODEGA', 'ADMIN']) [floor(random() * 4 + 1)]
-from
-  generate_series(1, 1000) as s (i);
+  (SELECT id FROM roles ORDER BY random() LIMIT 1)
+FROM generate_series(1, 1000) AS s(i);
 
 -- Insert 70,000 products with random data
-insert into
-  productos (
-    nombre,
-    descripcion,
-    precio,
-    categoria_id,
-    creado_en,
-    actualizado_en,
-    comentarios,
-    calificacion
-  )
-select
+INSERT INTO productos (nombre, descripcion, precio, categoria_id, creado_en, actualizado_en, comentarios, calificacion)
+SELECT
   'Product ' || i,
   'Description for product ' || i,
   round((random() * 1000 + 1)::numeric, 2),
-  (
-    select
-      id
-    from
-      categorias
-    order by
-      random()
-    limit
-      1
-  ),
-  now() - (random() * (interval '365 days')),
-  now(),
+  (SELECT id FROM categorias ORDER BY random() LIMIT 1),
+  NOW() - (random() * (interval '365 days')),
+  NOW(),
   'Comment for product ' || i,
   round((random() * 5)::numeric, 1)
-from
-  generate_series(1, 70000) as s (i);
+FROM generate_series(1, 70000) AS s(i);
 
-
-insert into
-  productos (
-    nombre,
-    descripcion,
-    precio,
-    categoria_id,
-    creado_en,
-    actualizado_en,
-    comentarios,
-    calificacion
-  )
-values
-  (
-    'Laptop',
-    'High-performance laptop',
-    500,
-    (
-      select
-        id
-      from
-        categorias
-      where
-        nombre = 'Electronics'
-      limit
-        1
-    ),
-    now(),
-    now(),
-    'Great laptop for work and play',
-    4.5
-  );
-
+-- Insert a specific product
+INSERT INTO productos (nombre, descripcion, precio, categoria_id, creado_en, actualizado_en, comentarios, calificacion)
+VALUES
+  ('Laptop', 'High-performance laptop', 500, (SELECT id FROM categorias WHERE nombre = 'Electronics' LIMIT 1), NOW(), NOW(), 'Great laptop for work and play', 4.5);
 
 -- Insert inventory records for existing products
-insert into
-  inventario (producto_id, cantidad, actualizado_en)
-select
-  id,
-  (random() * 100)::int,
-  now()
-from
-  productos;
+INSERT INTO inventario (producto_id, cantidad, actualizado_en)
+SELECT id, (random() * 100)::int, NOW() FROM productos;
 
+-- Insert inventory transactions for existing products
 INSERT INTO transacciones_inventario (producto_id, tipo, cantidad, fecha, usuario_id)
 SELECT 
     i.producto_id,
