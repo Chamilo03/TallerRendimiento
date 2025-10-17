@@ -1,11 +1,12 @@
 package co.edu.unbosque.service;
 
-import co.edu.unbosque.entity.Categoria;
-import co.edu.unbosque.repository.CategoriaRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import co.edu.unbosque.entity.Categoria;
+import co.edu.unbosque.repository.CategoriaRepository;
 
 @Service
 public class CategoriaService {
@@ -30,9 +31,5 @@ public class CategoriaService {
 
     public void eliminarCategoria(Long id) {
         categoriaRepository.deleteById(id);
-    }
-
-    public List<Categoria> buscarPorNombre(String nombre) {
-        return categoriaRepository.findByNombreContainingIgnoreCase(nombre);
     }
 }

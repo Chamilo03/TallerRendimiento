@@ -1,13 +1,25 @@
 package co.edu.unbosque.controller;
 
-import co.edu.unbosque.entity.Categoria;
-import co.edu.unbosque.service.CategoriaService;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import co.edu.unbosque.entity.Categoria;
+import co.edu.unbosque.model.dto.CategoriaDTO;
+import co.edu.unbosque.service.CategoriaService;
 
 @RestController
 @RequestMapping("/api/categorias")
+@CrossOrigin(origins = "*")
 public class CategoriaRestController {
 
     private final CategoriaService categoriaService;
@@ -16,33 +28,62 @@ public class CategoriaRestController {
         this.categoriaService = categoriaService;
     }
 
-    // Listar todas las categorías
+    // 🔹 Listar todas
     @GetMapping
-    public List<Categoria> listarCategorias() {
-        return categoriaService.listarCategorias();
+    public List<CategoriaDTO> listarCategorias() {
+        return categoriaService.listarCategorias()
+                .stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
     }
 
-    // Obtener una categoría por ID
+    // 🔹 Obtener por ID
     @GetMapping("/{id}")
-    public Categoria obtenerCategoria(@PathVariable Long id) {
-        return categoriaService.obtenerCategoria(id).orElse(null);
+    public CategoriaDTO obtenerCategoria(@PathVariable Long id) {
+        return categoriaService.obtenerCategoria(id)
+                .map(this::convertirADTO)
+                .orElse(null);
     }
 
-    // Crear o actualizar categoría
+    // 🔹 Crear categoría
     @PostMapping
-    public Categoria crearCategoria(@RequestBody Categoria categoria) {
-        return categoriaService.guardarCategoria(categoria);
+    public CategoriaDTO crearCategoria(@RequestBody CategoriaDTO dto) {
+        Categoria categoria = convertirAEntidad(dto);
+        Categoria guardada = categoriaService.guardarCategoria(categoria);
+        return convertirADTO(guardada);
     }
 
-    // Eliminar categoría
+    // 🔹 Actualizar
+    @PutMapping("/{id}")
+    public CategoriaDTO actualizarCategoria(@PathVariable Long id, @RequestBody CategoriaDTO dto) {
+        Categoria categoria = convertirAEntidad(dto);
+        categoria.setId(id);
+        Categoria actualizada = categoriaService.guardarCategoria(categoria);
+        return convertirADTO(actualizada);
+    }
+
+    // 🔹 Eliminar
     @DeleteMapping("/{id}")
     public void eliminarCategoria(@PathVariable Long id) {
         categoriaService.eliminarCategoria(id);
     }
 
-    // Buscar por nombre
-    @GetMapping("/buscar")
-    public List<Categoria> buscarPorNombre(@RequestParam String nombre) {
-        return categoriaService.buscarPorNombre(nombre);
+    // ============================================================
+    // 🔁 CONVERSIÓN DTO ↔ ENTIDAD
+    // ============================================================
+    private CategoriaDTO convertirADTO(Categoria categoria) {
+        CategoriaDTO dto = new CategoriaDTO();
+        dto.setId(categoria.getId());
+        dto.setNombre(categoria.getNombre());
+        dto.setDescripcion(categoria.getDescripcion());
+        return dto;
+    }
+
+    private Categoria convertirAEntidad(CategoriaDTO dto) {
+        Categoria categoria = new Categoria();
+        categoria.setId(dto.getId());
+        categoria.setNombre(dto.getNombre());
+        categoria.setDescripcion(dto.getDescripcion());
+        return categoria;
     }
 }

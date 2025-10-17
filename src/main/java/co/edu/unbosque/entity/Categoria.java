@@ -1,12 +1,17 @@
 package co.edu.unbosque.entity;
 
-import co.edu.unbosque.entity.Producto;
-
-import jakarta.persistence.*;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.Data;
 
 @Entity
 @Table(name = "categorias")
@@ -21,15 +26,6 @@ public class Categoria implements Serializable {
     private String nombre;
 
     private String descripcion;
-
-    // Relación con la categoría padre
-    @ManyToOne
-    @JoinColumn(name = "categoria_padre_id")
-    private Categoria categoriaPadre;
-
-    // Relación con subcategorías
-    @OneToMany(mappedBy = "categoriaPadre", cascade = CascadeType.ALL)
-    private List<Categoria> subCategorias;
 
     // Relación con productos
     @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL)

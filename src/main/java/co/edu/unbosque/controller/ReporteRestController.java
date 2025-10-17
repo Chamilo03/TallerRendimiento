@@ -1,17 +1,19 @@
 package co.edu.unbosque.controller;
 
 import java.util.List;
-import java.util.Map;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import co.edu.unbosque.model.dto.ReporteDTO;
 import co.edu.unbosque.service.ReporteService;
 
 @RestController
 @RequestMapping("/api/reports")
+@CrossOrigin(origins = "*")
 public class ReporteRestController {
 
     private final ReporteService reporteService;
@@ -21,7 +23,7 @@ public class ReporteRestController {
     }
 
     @GetMapping("/top-selling")
-    public List<Map<String, Object>> obtenerTopSelling(@RequestParam(defaultValue = "month") String period) {
+    public List<ReporteDTO> obtenerTopSelling(@RequestParam(defaultValue = "month") String period) {
         return reporteService.obtenerTopSelling(period);
     }
 }

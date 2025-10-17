@@ -1,8 +1,8 @@
 package co.edu.unbosque.model.dto;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
+
+import lombok.Data;
 
 @Data
 public class ProductoDTO {
@@ -10,7 +10,9 @@ public class ProductoDTO {
     private String nombre;
     private String descripcion;
     private Double precio;
-    private Long categoriaId; // referencia por id
+    private Long categoriaId;
     private LocalDateTime creadoEn;
     private LocalDateTime actualizadoEn;
+    private String comentario;
+    private Double calificacion;
 }

@@ -1,19 +1,24 @@
 package co.edu.unbosque.service;
 
-import co.edu.unbosque.entity.Producto;
-import co.edu.unbosque.repository.ProductoRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import co.edu.unbosque.entity.Categoria;
+import co.edu.unbosque.entity.Producto;
+import co.edu.unbosque.repository.CategoriaRepository;
+import co.edu.unbosque.repository.ProductoRepository;
 
 @Service
 public class ProductoService {
 
     private final ProductoRepository productoRepository;
+    private final CategoriaRepository categoriaRepository;
 
-    public ProductoService(ProductoRepository productoRepository) {
+    public ProductoService(ProductoRepository productoRepository, CategoriaRepository categoriaRepository) {
         this.productoRepository = productoRepository;
+        this.categoriaRepository = categoriaRepository;
     }
 
     public List<Producto> listarProductos() {
@@ -24,7 +29,11 @@ public class ProductoService {
         return productoRepository.findById(id);
     }
 
-    public Producto guardarProducto(Producto producto) {
+    public Producto guardarProducto(Producto producto, Long categoriaId) {
+        if (categoriaId != null) {
+            Categoria categoria = categoriaRepository.findById(categoriaId).orElse(null);
+            producto.setCategoria(categoria);
+        }
         return productoRepository.save(producto);
     }
 
