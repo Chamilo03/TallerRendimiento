@@ -41,7 +41,7 @@ public class UsuarioService {
 
     @Cacheable(value = "usuariosPorRol", key = "#rol")
     public List<Usuario> buscarPorRol(String rol) {
-        return usuarioRepository.findByRol(rol);
+        return usuarioRepository.findByRol_Nombre(rol);
     }
 
     @Cacheable(value = "usuarioPorCorreo", key = "#correo")
