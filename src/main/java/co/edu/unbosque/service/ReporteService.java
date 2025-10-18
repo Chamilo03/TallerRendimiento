@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import co.edu.unbosque.entity.TransaccionInventario;
@@ -17,20 +19,27 @@ import co.edu.unbosque.repository.TransaccionInventarioRepository;
 public class ReporteService {
 
     private final TransaccionInventarioRepository transaccionInventarioRepository;
+    private final ModelMapper modelMapper;
 
-    public ReporteService(TransaccionInventarioRepository transaccionInventarioRepository) {
+    public ReporteService(TransaccionInventarioRepository transaccionInventarioRepository, ModelMapper modelMapper) {
         this.transaccionInventarioRepository = transaccionInventarioRepository;
+        this.modelMapper = modelMapper;
     }
 
+    /**
+     * 🔹 Obtiene el top 10 de productos más vendidos en un periodo determinado.
+     * Los resultados se almacenan en caché según el periodo solicitado.
+     */
+    @Cacheable(value = "topSelling", key = "#period")
     public List<ReporteDTO> obtenerTopSelling(String period) {
-        // 🔹 Calcular el rango de fechas (LocalDateTime)
         LocalDateTime desde = calcularFechaDesde(period);
         LocalDateTime hasta = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
 
-        // 🔹 Obtener solo las transacciones de tipo "VENTA" en el rango
-        List<TransaccionInventario> ventas = transaccionInventarioRepository.findByTipoAndFechaBetween("VENTA", desde, hasta);
+        // 🔹 Solo las transacciones tipo "VENTA" dentro del rango de fechas
+        List<TransaccionInventario> ventas = transaccionInventarioRepository
+                .findByTipoAndFechaBetween("VENTA", desde, hasta);
 
-        // 🔹 Agrupar por producto y sumar cantidades vendidas
+        // 🔹 Agrupa por producto y suma cantidades vendidas
         Map<Long, Long> ventasPorProducto = ventas.stream()
                 .filter(t -> t.getProducto() != null)
                 .collect(Collectors.groupingBy(
@@ -38,25 +47,33 @@ public class ReporteService {
                         Collectors.summingLong(TransaccionInventario::getCantidad)
                 ));
 
-        // 🔹 Ordenar por cantidad descendente, limitar a top 10 y mapear a DTO
+        // 🔹 Ordena, limita a top 10 y construye DTOs
         return ventasPorProducto.entrySet().stream()
                 .sorted(Map.Entry.<Long, Long>comparingByValue().reversed())
                 .limit(10)
-                .map((Map.Entry<Long, Long> entry) -> {
+                .map(entry -> {
                     String nombreProducto = ventas.stream()
-                            .filter(t -> t.getProducto() != null && t.getProducto().getId().equals(entry.getKey()))
+                            .filter(t -> t.getProducto() != null && 
+                                         t.getProducto().getId().equals(entry.getKey()))
                             .findFirst()
                             .map(t -> t.getProducto().getNombre())
                             .orElse("Desconocido");
 
-                    return new ReporteDTO(entry.getKey(), nombreProducto, entry.getValue());
+                    // Mapea los datos a un DTO
+                    ReporteDTO dto = new ReporteDTO();
+                    dto.setProductoId(entry.getKey());
+                    dto.setNombreProducto(nombreProducto);
+                    dto.setTotalVendidas(entry.getValue());
+                    return dto;
                 })
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 🔹 Calcula la fecha de inicio según el periodo solicitado.
+     */
     private LocalDateTime calcularFechaDesde(String period) {
         LocalDate hoy = LocalDate.now();
-
         return switch (period.toLowerCase()) {
             case "day" -> LocalDateTime.of(hoy.minusDays(1), LocalTime.MIN);
             case "week" -> LocalDateTime.of(hoy.minusWeeks(1), LocalTime.MIN);

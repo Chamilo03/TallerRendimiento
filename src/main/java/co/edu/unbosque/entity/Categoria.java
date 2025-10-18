@@ -3,6 +3,8 @@ package co.edu.unbosque.entity;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,7 +22,7 @@ public class Categoria implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; 
 
     @Column(nullable = false)
     private String nombre;
@@ -28,6 +30,7 @@ public class Categoria implements Serializable {
     private String descripcion;
 
     // Relación con productos
+    @JsonManagedReference
     @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL)
     private List<Producto> productos;
 }

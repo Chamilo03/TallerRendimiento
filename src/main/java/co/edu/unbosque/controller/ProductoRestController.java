@@ -3,6 +3,7 @@ package co.edu.unbosque.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import co.edu.unbosque.entity.Producto;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import co.edu.unbosque.model.dto.ProductoDTO;
 import co.edu.unbosque.service.ProductoService;
 
@@ -22,6 +24,9 @@ import co.edu.unbosque.service.ProductoService;
 @RequestMapping("/api/productos")
 @CrossOrigin(origins = "*")
 public class ProductoRestController {
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private final ProductoService productoService;
 
@@ -32,9 +37,10 @@ public class ProductoRestController {
     // 🔹 Listar productos
     @GetMapping
     public List<ProductoDTO> listarProductos() {
-        return productoService.listarProductos()
-                .stream()
-                .map(this::convertirADTO)
+        Object cached = productoService.listarProductos(); // ahora devuelve Object
+        // Convertir LinkedHashMap a ProductoDTO
+        return ((List<Object>) cached).stream()
+                .map(o -> objectMapper.convertValue(o, ProductoDTO.class))
                 .collect(Collectors.toList());
     }
 
@@ -46,72 +52,36 @@ public class ProductoRestController {
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice) {
 
-        List<Producto> productos = productoService.listarProductos();
-
-        return productos.stream()
-                .filter(p -> query == null || p.getNombre().toLowerCase().contains(query.toLowerCase()))
-                .filter(p -> category == null ||
-                        (p.getCategoria() != null &&
-                         p.getCategoria().getNombre().equalsIgnoreCase(category)))
-                .filter(p -> minPrice == null || p.getPrecio() >= minPrice)
-                .filter(p -> maxPrice == null || p.getPrecio() <= maxPrice)
-                .map(this::convertirADTO)
+        Object cached = productoService.buscarProductos(query, category, minPrice, maxPrice);
+        return ((List<Object>) cached).stream()
+                .map(o -> objectMapper.convertValue(o, ProductoDTO.class))
                 .collect(Collectors.toList());
     }
 
     // 🔹 Detalles de producto
     @GetMapping("/{id}/details")
     public ProductoDTO obtenerDetallesProducto(@PathVariable Long id) {
-        return productoService.obtenerProducto(id)
-                .map(this::convertirADTO)
-                .orElse(null);
+        Object cached = productoService.obtenerProductoCache(id); // Object
+        if (cached == null) return null;
+        return objectMapper.convertValue(cached, ProductoDTO.class);
     }
 
     // 🔹 Crear producto
     @PostMapping
     public ProductoDTO crearProducto(@RequestBody ProductoDTO dto) {
-        Producto producto = convertirAEntidad(dto);
-        Producto guardado = productoService.guardarProducto(producto, dto.getCategoriaId());
-        return convertirADTO(guardado);
+        return productoService.guardarProducto(dto, dto.getCategoriaId());
     }
 
     // 🔹 Actualizar producto
     @PutMapping("/{id}")
     public ProductoDTO actualizarProducto(@PathVariable Long id, @RequestBody ProductoDTO dto) {
-        Producto producto = convertirAEntidad(dto);
-        producto.setId(id);
-        Producto actualizado = productoService.guardarProducto(producto, dto.getCategoriaId());
-        return convertirADTO(actualizado);
+        dto.setId(id);
+        return productoService.guardarProducto(dto, dto.getCategoriaId());
     }
 
     // 🔹 Eliminar producto
     @DeleteMapping("/{id}")
     public void eliminarProducto(@PathVariable Long id) {
         productoService.eliminarProducto(id);
-    }
-
-    // ============================================================
-    // 🔁 CONVERSIÓN DTO ↔ ENTIDAD
-    // ============================================================
-
-    private ProductoDTO convertirADTO(Producto producto) {
-        ProductoDTO dto = new ProductoDTO();
-        dto.setId(producto.getId());
-        dto.setNombre(producto.getNombre());
-        dto.setDescripcion(producto.getDescripcion());
-        dto.setPrecio(producto.getPrecio());
-        dto.setCategoriaId(producto.getCategoria() != null ? producto.getCategoria().getId() : null);
-        dto.setCreadoEn(producto.getCreadoEn());
-        dto.setActualizadoEn(producto.getActualizadoEn());
-        return dto;
-    }
-
-    private Producto convertirAEntidad(ProductoDTO dto) {
-        Producto producto = new Producto();
-        producto.setId(dto.getId());
-        producto.setNombre(dto.getNombre());
-        producto.setDescripcion(dto.getDescripcion());
-        producto.setPrecio(dto.getPrecio());
-        return producto;
     }
 }

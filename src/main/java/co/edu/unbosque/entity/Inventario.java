@@ -6,6 +6,8 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 @Table(name = "inventario")
 @Data
@@ -17,6 +19,7 @@ public class Inventario implements Serializable {
 
     // Relación uno a uno con producto (un inventario pertenece a un producto)
     @OneToOne
+    @JsonManagedReference
     @JoinColumn(name = "producto_id", nullable = false, unique = true)
     private Producto producto;
 

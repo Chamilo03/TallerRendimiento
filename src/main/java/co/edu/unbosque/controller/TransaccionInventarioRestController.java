@@ -1,13 +1,22 @@
 package co.edu.unbosque.controller;
 
-import co.edu.unbosque.entity.TransaccionInventario;
-import co.edu.unbosque.service.TransaccionInventarioService;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import co.edu.unbosque.model.dto.TransaccionInventarioDTO;
+import co.edu.unbosque.service.TransaccionInventarioService;
 
 @RestController
 @RequestMapping("/api/transacciones")
+@CrossOrigin(origins = "*")
 public class TransaccionInventarioRestController {
 
     private final TransaccionInventarioService transaccionInventarioService;
@@ -16,39 +25,39 @@ public class TransaccionInventarioRestController {
         this.transaccionInventarioService = transaccionInventarioService;
     }
 
-    // Listar todas las transacciones
+    // 🔹 Listar todas las transacciones
     @GetMapping
-    public List<TransaccionInventario> listarTransacciones() {
+    public List<TransaccionInventarioDTO> listarTransacciones() {
         return transaccionInventarioService.listarTransacciones();
     }
 
-    // Obtener transacción por ID
+    // 🔹 Obtener transacción por ID
     @GetMapping("/{id}")
-    public TransaccionInventario obtenerTransaccion(@PathVariable Long id) {
+    public TransaccionInventarioDTO obtenerTransaccion(@PathVariable Long id) {
         return transaccionInventarioService.obtenerTransaccion(id).orElse(null);
     }
 
-    // Crear una nueva transacción
+    // 🔹 Crear nueva transacción
     @PostMapping
-    public TransaccionInventario crearTransaccion(@RequestBody TransaccionInventario transaccion) {
-        return transaccionInventarioService.guardarTransaccion(transaccion);
+    public TransaccionInventarioDTO crearTransaccion(@RequestBody TransaccionInventarioDTO dto) {
+        return transaccionInventarioService.guardarTransaccion(dto);
     }
 
-    // Eliminar una transacción
+    // 🔹 Eliminar una transacción
     @DeleteMapping("/{id}")
     public void eliminarTransaccion(@PathVariable Long id) {
         transaccionInventarioService.eliminarTransaccion(id);
     }
 
-    // Buscar transacciones por producto
+    // 🔹 Buscar transacciones por producto
     @GetMapping("/producto/{productoId}")
-    public List<TransaccionInventario> buscarPorProducto(@PathVariable Long productoId) {
+    public List<TransaccionInventarioDTO> buscarPorProducto(@PathVariable Long productoId) {
         return transaccionInventarioService.buscarPorProducto(productoId);
     }
 
-    // Buscar transacciones por tipo
+    // 🔹 Buscar transacciones por tipo
     @GetMapping("/tipo/{tipo}")
-    public List<TransaccionInventario> buscarPorTipo(@PathVariable String tipo) {
+    public List<TransaccionInventarioDTO> buscarPorTipo(@PathVariable String tipo) {
         return transaccionInventarioService.buscarPorTipo(tipo);
     }
 }

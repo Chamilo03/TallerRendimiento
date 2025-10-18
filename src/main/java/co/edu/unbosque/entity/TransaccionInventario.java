@@ -3,6 +3,8 @@ package co.edu.unbosque.entity;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,6 +26,7 @@ public class TransaccionInventario implements Serializable {
 
     // Relación con Producto
     @ManyToOne
+    @JsonManagedReference
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
@@ -38,6 +41,7 @@ public class TransaccionInventario implements Serializable {
 
     // Relación con Usuario (puede ser null si se borra)
     @ManyToOne
+    @JsonManagedReference
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 }

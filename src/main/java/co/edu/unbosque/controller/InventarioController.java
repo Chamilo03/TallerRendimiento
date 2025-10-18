@@ -1,17 +1,32 @@
 package co.edu.unbosque.controller;
 
-import co.edu.unbosque.entity.Inventario;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import co.edu.unbosque.model.dto.InventarioDTO;
 import co.edu.unbosque.service.InventarioService;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/inventario")
 @CrossOrigin(origins = "*")
 public class InventarioController {
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private final InventarioService inventarioService;
 
@@ -19,46 +34,38 @@ public class InventarioController {
         this.inventarioService = inventarioService;
     }
 
-    // 🔹 Listar todo el inventario
+    // 🔹 Listar inventario (usa DTOs directamente)
     @GetMapping
     public List<InventarioDTO> listarInventario() {
-        return inventarioService.listarInventario()
-                .stream()
-                .map(this::convertirADTO)
+        Object cached = inventarioService.listarInventario(); // devuelve Object
+        return ((List<Object>) cached).stream()
+                .map(o -> objectMapper.convertValue(o, InventarioDTO.class))
                 .collect(Collectors.toList());
     }
-
-    // 🔹 Obtener inventario por ID
+    // 🔹 Obtener por ID
     @GetMapping("/{id}")
     public InventarioDTO obtenerPorId(@PathVariable Long id) {
-        return inventarioService.obtenerPorId(id)
-                .map(this::convertirADTO)
-                .orElse(null);
+        return inventarioService.obtenerPorId(id).orElse(null);
     }
 
-    // 🔹 Obtener inventario por producto
-    @GetMapping("/product/{productoId}")
-    public InventarioDTO obtenerPorProducto(@PathVariable Long productoId) {
-        return inventarioService.obtenerPorProducto(productoId)
-                .map(this::convertirADTO)
-                .orElse(null);
+    @GetMapping("/product/{id}")
+    public InventarioDTO obtenerPorProducto(@PathVariable Long id) {
+        Object cached = inventarioService.obtenerPorProducto(id); // devuelve Object
+        if (cached == null) return null;
+        return objectMapper.convertValue(cached, InventarioDTO.class);
     }
 
     // 🔹 Crear inventario
     @PostMapping
     public InventarioDTO crearInventario(@RequestBody InventarioDTO dto) {
-        Inventario inventario = convertirAEntidad(dto);
-        Inventario guardado = inventarioService.guardarInventario(inventario, dto.getProductoId());
-        return convertirADTO(guardado);
+        return inventarioService.guardarInventario(dto, dto.getProductoId());
     }
 
     // 🔹 Actualizar inventario
     @PutMapping("/{id}")
     public InventarioDTO actualizarInventario(@PathVariable Long id, @RequestBody InventarioDTO dto) {
-        Inventario inventario = convertirAEntidad(dto);
-        inventario.setId(id);
-        Inventario actualizado = inventarioService.guardarInventario(inventario, dto.getProductoId());
-        return convertirADTO(actualizado);
+        dto.setId(id);
+        return inventarioService.guardarInventario(dto, dto.getProductoId());
     }
 
     // 🔹 Eliminar inventario
@@ -67,36 +74,14 @@ public class InventarioController {
         inventarioService.eliminarInventario(id);
     }
 
-    // 🔹 Productos con bajo stock
     @GetMapping("/low-stock")
-    public List<Map<String, Object>> obtenerLowStock(@RequestParam(defaultValue = "5") int limite) {
-        return inventarioService.listarInventario().stream()
-                .filter(i -> i.getCantidad() <= limite)
-                .map(i -> {
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("productoId", i.getProducto().getId());
-                    data.put("nombre", i.getProducto().getNombre());
-                    data.put("cantidad", i.getCantidad());
-                    return data;
-                })
-                .toList();
-    }
+    public ResponseEntity<List<InventarioDTO>> obtenerLowStock() {
+    Object cached = inventarioService.obtenerLowStockCache();
 
-    // ============================================================
-    // 🔁 CONVERSIÓN DTO ↔ ENTIDAD
-    // ============================================================
-    private InventarioDTO convertirADTO(Inventario inventario) {
-        InventarioDTO dto = new InventarioDTO();
-        dto.setId(inventario.getId());
-        dto.setCantidad(inventario.getCantidad());
-        dto.setProductoId(inventario.getProducto() != null ? inventario.getProducto().getId() : null);
-        return dto;
-    }
+    List<InventarioDTO> lowStock = ((List<Object>) cached).stream()
+        .map(o -> objectMapper.convertValue(o, InventarioDTO.class))
+        .collect(Collectors.toList());
 
-    private Inventario convertirAEntidad(InventarioDTO dto) {
-        Inventario inventario = new Inventario();
-        inventario.setId(dto.getId());
-        inventario.setCantidad(dto.getCantidad());
-        return inventario;
-    }
+    return ResponseEntity.ok(lowStock);
+}
 }

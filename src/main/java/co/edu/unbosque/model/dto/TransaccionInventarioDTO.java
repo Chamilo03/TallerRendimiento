@@ -1,11 +1,14 @@
 package co.edu.unbosque.model.dto;
 
 import java.time.LocalDateTime;
+import java.io.Serializable;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class TransaccionInventarioDTO {
+@NoArgsConstructor
+public class TransaccionInventarioDTO implements Serializable{
     private Long id;
     private Long productoId;
     private String tipo;

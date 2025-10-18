@@ -1,11 +1,15 @@
 package co.edu.unbosque.model.dto;
 
+import java.io.Serializable;
+
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class UsuarioDTO {
+@NoArgsConstructor
+public class UsuarioDTO implements Serializable{
     private Long id;
     private String nombre;
     private String correo;
-    private String rol;
+    private RolDTO rol;
 }

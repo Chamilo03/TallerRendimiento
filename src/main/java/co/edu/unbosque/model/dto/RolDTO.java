@@ -1,5 +1,7 @@
 package co.edu.unbosque.model.dto;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RolDTO {
+public class RolDTO implements Serializable{
     private Long id;
     private String nombre;
 }

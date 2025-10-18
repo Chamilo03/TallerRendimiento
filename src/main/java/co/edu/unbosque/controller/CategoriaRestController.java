@@ -1,7 +1,6 @@
 package co.edu.unbosque.controller;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,22 +27,16 @@ public class CategoriaRestController {
         this.categoriaService = categoriaService;
     }
 
-    // 🔹 Listar todas
     @GetMapping
-    public List<CategoriaDTO> listarCategorias() {
-        return categoriaService.listarCategorias()
-                .stream()
-                .map(this::convertirADTO)
-                .collect(Collectors.toList());
-    }
+public List<CategoriaDTO> listarCategorias() {
+    return categoriaService.listarCategorias();
+}
 
-    // 🔹 Obtener por ID
-    @GetMapping("/{id}")
-    public CategoriaDTO obtenerCategoria(@PathVariable Long id) {
-        return categoriaService.obtenerCategoria(id)
-                .map(this::convertirADTO)
-                .orElse(null);
-    }
+@GetMapping("/{id}")
+public CategoriaDTO obtenerCategoria(@PathVariable Long id) {
+    return categoriaService.obtenerCategoria(id).orElse(null);
+}
+
 
     // 🔹 Crear categoría
     @PostMapping
@@ -76,7 +69,7 @@ public class CategoriaRestController {
         dto.setId(categoria.getId());
         dto.setNombre(categoria.getNombre());
         dto.setDescripcion(categoria.getDescripcion());
-        return dto;
+        return dto; 
     }
 
     private Categoria convertirAEntidad(CategoriaDTO dto) {

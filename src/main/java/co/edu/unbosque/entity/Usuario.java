@@ -2,6 +2,8 @@ package co.edu.unbosque.entity;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,5 +31,6 @@ public class Usuario implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "rol_id", nullable = false)
+    @JsonIgnore
     private Rol rol;
 }
