@@ -134,3 +134,41 @@ FROM inventario i
 JOIN productos p ON i.producto_id = p.id
 CROSS JOIN LATERAL (SELECT random() AS r) rnd
 LIMIT 100000;
+
+
+--Pruebas 
+-- Índice GIN para búsqueda de texto en 'nombre'
+CREATE INDEX idx_productos_nombre_tsv ON productos USING gin (to_tsvector('spanish', nombre));
+
+-- Índice B-tree tradicional sobre el precio (si no existe)
+CREATE INDEX IF NOT EXISTS idx_productos_precio ON productos(precio);
+
+VACUUM ANALYZE productos;
+
+--
+
+CREATE INDEX idx_productos_categoria_precio ON productos(categoria_id, precio);
+VACUUM ANALYZE productos;
+
+--
+
+CREATE INDEX idx_inventario_cantidad_pos
+ON inventario(producto_id)
+WHERE cantidad > 0;
+
+VACUUM ANALYZE inventario;
+
+--
+
+-- índice para ordenar por precio (si ordenas por precio)
+CREATE INDEX IF NOT EXISTS idx_productos_precio ON productos(precio);
+
+-- índice para ordenar por fecha de creación (si ordenas por creado_en)
+CREATE INDEX IF NOT EXISTS idx_productos_creado_en ON productos(creado_en);
+
+-- índice compuesto útil: filtrado por categoria y orden por precio
+CREATE INDEX IF NOT EXISTS idx_productos_categoria_precio ON productos(categoria_id, precio);
+
+VACUUM ANALYZE productos;
+
+
